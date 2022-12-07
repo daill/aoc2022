@@ -4,94 +4,71 @@ use std::{io, usize};
 use std::borrow::Borrow;
 use std::io::BufRead;
 use std::str::Chars;
-use regex::Regex;
 
 
 // a-z 1-26
 // A-Z 27-52
 
-fn read_from_file() -> (Vec<Vec<char>>, Vec<Vec<usize>>) {
+fn read_from_file() -> (Vec<Vec<char>>) {
     let mut file = File::open("input");
-    let mut stacks: Vec<Vec<char>> = Vec::new();
-    let mut procedure: Vec<Vec<usize>> = Vec::new();
-    let (stacks, procedure) = match file {
+    let mut content: Vec<Vec<char>> = Vec::new();
+    let content = match file {
         Ok(file) => {
             let lines = io::BufReader::new(file).lines();
-            let re = Regex::new(r"\w+\W(\d+)\W\w+\W(\d+)\W\w+\W(\d+)").unwrap();
-            let mut procedure_part: bool = false;
             for line in lines {
                 if let Ok(line) = line {
                     println!("line {}", line);
-                    if line.is_empty() {
-                        procedure_part = true;
-
-                        continue;
-                    }
-                    if procedure_part == false {
-
-                        let mut counter = 1;
-                        let mut line_counter = 0;
-                        while counter < line.len() {
-                            if stacks.len() == line_counter {
-                                stacks.push(Vec::new());
-                            }
-                            let c = line.chars().nth(counter).unwrap();
-                            if c.is_alphabetic() {
-                                stacks[line_counter].insert(0, c);
-                            }
-
-
-                            counter += 4;
-
-                            line_counter += 1;
-                        }
-
-                    } else {
-                        for capture in re.captures_iter(&line) {
-                            let a = usize::from(*&capture[1].parse::<usize>().unwrap());
-                            let b = usize::from(*&capture[2].parse::<usize>().unwrap())-1;
-                            let c = usize::from(*&capture[3].parse::<usize>().unwrap())-1;
-                            procedure.push(Vec::from([a,b,c]));
-                        }
-                    }
+                    content.push(line.chars().collect::<Vec<char>>());
                 }
             }
-            println!("stacks {:?}", &stacks);
-            print!("{:?}", procedure);
-            (stacks, procedure)
+            println!("stacks {:?}", &content);
+            content
         },
         Err(e) => panic!("Cannot process file: {}", e)
     };
-    return (stacks, procedure);
+    return content;
 }
 
 
-fn first_part(stacks: &mut Vec<Vec<char>>, procedure: Vec<Vec<usize>>) {
-    for proc in procedure {
-        let amount = proc[0];
-        let from = proc[1];
-        let to = proc[2];
+fn first_part(content: &Vec<Vec<char>>) {
+    for line in content.iter() {
+        println!("{:?}", line);
+        for (idx, window) in line.windows(4).enumerate() {
+            let mut vec = Vec::from(window);
+            vec.sort();
 
-        println!("amount {} from {} to {}", amount, from, to);
-        for a in 0..amount {
-            let from_vec: &mut Vec<char> = stacks.get_mut(from).unwrap();
-            let mov = from_vec.last().unwrap().clone();
-            from_vec.truncate(from_vec.len()-1);
-            let to_vec: &mut Vec<char> = stacks.get_mut(to).unwrap();
-            to_vec.push(mov);
-            println!("{:?}", to_vec);
+            vec.dedup();
+            if vec.len() == 4 {
+                println!("{}", idx+4);
+                break;
+            }
         }
-
     }
-    stacks.iter().for_each(|stack| print!("{}", stack.last().unwrap()));
 }
 
+
+fn second_part(content: &Vec<Vec<char>>) {
+    for line in content.iter() {
+        println!("{:?}", line);
+        for (idx, window) in line.windows(14).enumerate() {
+            let mut vec = Vec::from(window);
+            vec.sort();
+
+            vec.dedup();
+            if vec.len() == 14 {
+                println!("{}", idx+14);
+                break;
+            }
+        }
+    }
+}
 
 fn main() {
-    let (mut stacks, procedure) = read_from_file();
+    let content = read_from_file();
 
 
-    first_part(&mut stacks, procedure);
+    //first_part(&content);
+    second_part(&content);
 
 
 
