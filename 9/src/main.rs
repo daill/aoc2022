@@ -42,8 +42,11 @@ fn second_part(content: &Vec<(String, usize)>)  {
         for i in 0..mov.1 {
             round_move(&mut rope.first_mut().unwrap(), mov.0.as_str());
 
+            rope.windows(2).map()
+            for  [head, tail] in rope.windows(2).to_owned() {
 
-            for 
+            }
+
 
             h_his.push(h.clone());
 
@@ -54,7 +57,7 @@ fn second_part(content: &Vec<(String, usize)>)  {
 
 }
 
-fn move_to(p1: (i32, i32), mut p2: (i32, i32)) {
+fn move_to(mut p2: &mut (i32, i32), p1: &(i32, i32)) {
     p2.0 += (p1.0-p2.0).signum();
     p2.1 += (p1.1-p2.1).signum();
 }
