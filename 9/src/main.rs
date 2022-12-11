@@ -33,28 +33,27 @@ fn read_from_file() -> Vec<(String, usize)> {
 
 
 fn second_part(content: &Vec<(String, usize)>)  {
-    let mut h = (0,0);
-    let mut h_his: Vec<(i32, i32)> = Vec::new();
-    let mut rope : Vec<(i32, i32)> = vec![(0,0); 9];
-
+    let mut rope : Vec<(i32, i32)> = vec![(0,0); 10];
+    let mut his : HashSet<(i32, i32)> = HashSet::new();
 
     for mov in content {
         for i in 0..mov.1 {
             round_move(&mut rope.first_mut().unwrap(), mov.0.as_str());
 
-            rope.windows(2).map()
-            for  [head, tail] in rope.windows(2).to_owned() {
-
+            for i in 1..rope.len() {
+                let (h, t) = rope.split_at_mut(i);
+                let head = h.last().unwrap();
+                let tail = t.first_mut().unwrap();
+                if (head.1-tail.1).abs() > 1 ||  (head.0-tail.0).abs() > 1 {
+                    move_to(tail, head);
+                }
             }
 
-
-            h_his.push(h.clone());
-
             println!("m {} c {} {:?}", mov.0, i, rope);
-
+            his.insert(rope[9].clone());
         }
     }
-
+    println!("c {} {:?}", his.len(), his);
 }
 
 fn move_to(mut p2: &mut (i32, i32), p1: &(i32, i32)) {
