@@ -33,23 +33,25 @@ fn read_from_file() -> Vec<(String, usize)> {
 
 
 fn first_part(content: &Vec<(String, usize)>)  {
-    let h = (0,0);
-    let t = (0,0);
+    let mut h = (0,0);
+    let mut t = (0,0);
+    let mut prev_dir = "";
 
     for mov in content {
-        match mov.0 {
-            "U" => {
-
-            }
-            "R" =>
-            "L" =>
-            "D" =>
-            _ => {}
+        for i in 0..mov.1 {
+            round_move(&mut h, &mut t, mov.0.as_str());
+            println!("{:?} {:?}", h, t);
         }
     }
 }
 
-fn round_move(coord: (i32, i32)) {
+fn round_move(mut h: &mut (i32, i32), t: &mut (i32, i32), dir: &str) {
+    match dir {
+        "R" => {
+            h = &mut (h.0, h.1 + 1);
+        }
+        _ => {}
+    }
 
 }
 
