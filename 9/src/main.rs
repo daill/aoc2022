@@ -2,7 +2,7 @@ use std::any::Any;
 use std::fs::File;
 use std::{io, usize};
 use std::borrow::Borrow;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use std::slice::RSplit;
 use std::str::Chars;
@@ -32,27 +32,72 @@ fn read_from_file() -> Vec<(String, usize)> {
 }
 
 
-fn first_part(content: &Vec<(String, usize)>)  {
+fn second_part(content: &Vec<(String, usize)>)  {
     let mut h = (0,0);
-    let mut t = (0,0);
-    let mut prev_dir = "";
+    let mut h_his: Vec<(i32, i32)> = Vec::new();
+    let mut rope : Vec<(i32, i32)> = vec![(0,0); 9];
+
 
     for mov in content {
         for i in 0..mov.1 {
-            round_move(&mut h, &mut t, mov.0.as_str());
+            round_move(&mut rope.first_mut().unwrap(), mov.0.as_str());
+
+
+            for 
+
+            h_his.push(h.clone());
+
+            println!("m {} c {} {:?}", mov.0, i, rope);
+
+        }
+    }
+
+}
+
+fn move_to(p1: (i32, i32), mut p2: (i32, i32)) {
+    p2.0 += (p1.0-p2.0).signum();
+    p2.1 += (p1.1-p2.1).signum();
+}
+
+fn first_part(content: &Vec<(String, usize)>)  {
+    let mut h = (0,0);
+    let mut t = (0,0);
+    let mut h_his: Vec<(i32, i32)> = Vec::new();
+    let mut t_his: HashSet<(i32, i32)> = HashSet::new();
+
+    for mov in content {
+        for i in 0..mov.1 {
+            round_move(&mut h,  mov.0.as_str());
+            if (h.1-t.1).abs() > 1 ||  (h.0-t.0).abs() > 1 {
+                t = *h_his.last().unwrap();
+                t_his.insert(t);
+            }
+
+            h_his.push(h.clone());
             println!("{:?} {:?}", h, t);
         }
     }
+
+    println!("count {} {:?}", t_his.len(), t_his);
 }
 
-fn round_move(mut h: &mut (i32, i32), t: &mut (i32, i32), dir: &str) {
+fn round_move(mut h: &mut (i32, i32), dir: &str) {
     match dir {
         "R" => {
-            h = &mut (h.0, h.1 + 1);
-        }
+            h.0 += 1;
+        },
+        "U" => {
+            h.1 += 1;
+        },
+        "L" => {
+            h.0 -= 1;
+        },
+        "D" => {
+            h.1 -= 1;
+        },
         _ => {}
     }
-
+    // t follow
 }
 
 
@@ -60,8 +105,8 @@ fn main() {
     let content = read_from_file();
     println!("content {:?}", &content);
 
-    first_part(&content);
-
+    //first_part(&content);
+    second_part(&content);
 
 
 
