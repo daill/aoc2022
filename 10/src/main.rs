@@ -56,6 +56,33 @@ fn first_part(content: &Vec<(String, i32)>)  {
     println!("{}", sum);
 }
 
+
+fn second_part(content: &Vec<(String, i32)>)  {
+    let mut cycle = 0;
+    let mut x = 1;
+    let mut sum = 0;
+    let mut crt: Vec<char> = Vec::new();
+    let mut sprite = (x-1..x+1);
+    for cmd in content {
+        for i in 0..process_cmd(&cmd.0) {
+            if sprite.contains(&cycle) {
+                crt.push('#');
+            } else {
+                crt.push('.');
+            }
+            cycle += 1;
+        }
+        x += cmd.1;
+        if cmd.1 != 0 {
+            // rebuild window
+            sprite = (x-1..x+1);
+        }
+
+    }
+    crt.chunks(40).for_each(|chunk| println!("{:?}", chunk));
+
+}
+
 fn process_cmd(cmd: &String) -> i32 {
     match cmd.as_str() {
         "noop" => 1,
@@ -69,7 +96,8 @@ fn main() {
     let content = read_from_file();
     println!("content {:?}", &content);
 
-    first_part(&content);
+    //first_part(&content);
+    second_part(&content);
 
 
 }
