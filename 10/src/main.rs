@@ -36,7 +36,31 @@ fn read_from_file() -> Vec<(String, usize)> {
 
 
 fn first_part(content: &Vec<(String, usize)>)  {
+    let mut cycle = 0;
+    let mut x = 0;
+    for cmd in content {
+        match cmd.0.as_str() {
+            "noop" => {
+                add_cycle(&mut cycle, 1);
+            },
+            "addx" => {
+                add_cycle(&mut cycle, 2);
+                x += cmd.1;
+            },
+            _ => {}
+        }
+    }
+}
 
+fn add_cycle(mut cycle: &mut i32, add: usize) {
+    for i in 0..add {
+        cycle += 1;
+        match cycle {
+            20 => {println!("{}", x)},
+            60 => {},
+            _ => {}
+        }
+    }
 }
 
 
