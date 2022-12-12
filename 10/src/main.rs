@@ -53,14 +53,7 @@ fn first_part(content: &Vec<(String, usize)>)  {
 }
 
 fn add_cycle(mut cycle: &mut i32, add: usize) {
-    for i in 0..add {
-        cycle += 1;
-        match cycle {
-            20 => {println!("{}", x)},
-            60 => {},
-            _ => {}
-        }
-    }
+
 }
 
 
