@@ -4,6 +4,7 @@ use std::{io, usize};
 use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
+use std::ops::Range;
 use std::slice::RSplit;
 use std::str::Chars;
 
@@ -58,14 +59,17 @@ fn first_part(content: &Vec<(String, i32)>)  {
 
 
 fn second_part(content: &Vec<(String, i32)>)  {
-    let mut cycle = 0;
+    let mut cycle : i32 = 0;
     let mut x = 1;
     let mut sum = 0;
     let mut crt: Vec<char> = Vec::new();
-    let mut sprite = (x-1..x+1);
+    let mut sprite : Range<i32> = ((x-1)..(x+2));
+    let mut clean_cycle = 0;
     for cmd in content {
         for i in 0..process_cmd(&cmd.0) {
-            if sprite.contains(&cycle) {
+            clean_cycle = cycle%40;
+            //if clean_cycle == x-1 || clean_cycle == x || clean_cycle == x+1 {
+            if sprite.contains(&clean_cycle) {
                 crt.push('#');
             } else {
                 crt.push('.');
@@ -75,12 +79,11 @@ fn second_part(content: &Vec<(String, i32)>)  {
         x += cmd.1;
         if cmd.1 != 0 {
             // rebuild window
-            sprite = (x-1..x+1);
+            sprite = ((x-1)..(x+2));
         }
-
+        println!("{:?}", sprite);
     }
-    crt.chunks(40).for_each(|chunk| println!("{:?}", chunk));
-
+    crt.chunks(40).for_each(|e| println!("{:?}", e));
 }
 
 fn process_cmd(cmd: &String) -> i32 {
