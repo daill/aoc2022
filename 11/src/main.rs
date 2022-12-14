@@ -84,11 +84,12 @@ fn first_part(content: &mut HashMap<i32, RefCell<Monkey>>)  {
     let mut sec = 0;
     let mut keys = content.keys().into_iter().map(|e| e.clone()).collect::<Vec<i32>>();
     keys.sort();
-    for i in 0..20 {
+    let mut m_count:HashMap<i32, i32> = HashMap::new();
+    for i in 0..10000 {
         for monkey_id in keys.iter() {
 
             let mut monkey = content.get(monkey_id).unwrap().borrow_mut();
-            println!("{:?}", monkey);
+            //println!("id {} monkey {:?}", monkey_id, monkey);
             for item in &monkey.items {
                 let mut res = match monkey.operation[1].as_str() {
                     "*" => {
@@ -99,28 +100,35 @@ fn first_part(content: &mut HashMap<i32, RefCell<Monkey>>)  {
                     }
                     _ => 0
                 };
-                res = res/3;
+                //res = res/3;
                 let div_by = &monkey.test[1].parse::<i32>().unwrap();
-                if (res / div_by) == 0 {
+                if (res % div_by) == 0 {
                     let id = &monkey.test[2].parse::<i32>().unwrap();
                     let mut to = content.get(id).unwrap().borrow_mut();
-                    println!("{:?}", to);
 
                     to.items.push(res);
-                    println!("{:?}", to);
+                    //println!("res {} to {} {:?}", res, id, to);
                 } else {
                     let id = &monkey.test[3].parse::<i32>().unwrap();
-                     = content.get(id).unwrap().borrow_mut();
-                    println!("{:?}", to);
+                    let mut to= content.get(id).unwrap().borrow_mut();
 
                     to.items.push(res);
-                    println!("{:?}", to);
+                    //println!("res {} to {} {:?}", res, id, to);
                 }
             }
+            let c = m_count.get(monkey_id).unwrap_or(&0) + monkey.items.len() as i32 ;
+            m_count.insert(monkey_id.clone(), i32::from(c));
             &monkey.items.clear();
         }
-        content.keys().for_each(|e| println!("{:?}", content.get(e).unwrap()));
+        //content.keys().for_each(|e| println!("{:?}", content.get(e).unwrap()));
     }
+
+    println!("{:?}", m_count);
+    let mut v = m_count.into_iter().map(|e| e.1).collect::<Vec<i32>>();
+    v.sort();
+    v.reverse();
+
+    println!("{}", i64::from(v[0]*v[1]));
 }
 
 
