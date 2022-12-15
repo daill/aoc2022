@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::{io, usize};
+use std::collections::HashMap;
 use std::io::BufRead;
 use std::ops::{Deref, Range};
 use std::slice::RSplit;
@@ -41,18 +42,21 @@ fn check_char_at(content: &Vec<char>, current_char: &char, length: &u32, positio
     let mut char_at : &char = &char::default();
     char_at = content.get(get_lin_pos(length, position)).unwrap();
 
-    if current_char == &'S' || (char_at.clone() as i32) - current_char.clone() as i32 == 1 {
+    let diff = (char_at.clone() as i32) - (current_char.clone() as i32);
+    if current_char == &'S' || char_at == &'E' || diff == 1 || diff == 0 {
         return true;
     }
     false
 }
 
-fn walk_path(content: &Vec<char>, visited: &Vec<(u32, u32)>, length: &u32, position: &(u32, u32), paths: &mut Vec<Vec<(u32, u32)>>) {
+fn walk_path(content: &Vec<char>, visited: &Vec<(u32, u32)>, length: &u32, position: &(u32, u32), paths: &mut HashMap<u32, Vec<(u32, u32)>>) {
     let mut local_visited = visited.clone();
     local_visited.push(position.clone());
     let current_char = content.get(get_lin_pos(length, position)).unwrap();
+    println!("cc {} pos {:?} {:?}", current_char, position, local_visited);
     if current_char == &'E' {
-        paths.push(local_visited.clone());
+        paths.insert(local_visited.len() as u32, local_visited.clone());
+        return;
     }
 
     if position.0 > 0 {
@@ -62,10 +66,10 @@ fn walk_path(content: &Vec<char>, visited: &Vec<(u32, u32)>, length: &u32, posit
             walk_path(content, &local_visited, length, p_l, paths);
         }
     }
-    if position.0 < *length {
+    if position.0 < *length-1 {
         let p_r = &(position.0+1, position.1);
         if !local_visited.contains(p_r) && check_char_at(content, current_char, length, p_r) {
-           walk_path(content, &local_visited, length, p_r, paths);
+            walk_path(content, &local_visited, length, p_r, paths);
         }
     }
     if position.1 > 0 {
@@ -74,7 +78,7 @@ fn walk_path(content: &Vec<char>, visited: &Vec<(u32, u32)>, length: &u32, posit
             walk_path(content, &local_visited, length, p_d, paths);
         }
     }
-    if position.1 < (content.len() as u32)/length {
+    if position.1 < (content.len() as u32)/length-1 {
         let p_u = &(position.0, position.1+1);
         if !local_visited.contains(p_u) && check_char_at(content, current_char, length, p_u) {
             walk_path(content, &local_visited, length, p_u, paths);
@@ -82,13 +86,14 @@ fn walk_path(content: &Vec<char>, visited: &Vec<(u32, u32)>, length: &u32, posit
 
     }
 
-    println!("cc {} {:?}", current_char, local_visited);
+
 }
 
 fn first_part(content: &Vec<char>, length: &u32)  {
     let mut visited: Vec<(u32, u32)> = Vec::new();
-    let mut paths: Vec<Vec<(u32, u32)>> = Vec::new();
+    let mut paths: HashMap<u32, Vec<(u32, u32)>> = HashMap::new();
     walk_path(content, &mut visited, length, &(0,0), &mut paths);
+    paths.into_iter().for_each(|e| println!("{} {:?}", e.0, e.1));
 }
 
 
