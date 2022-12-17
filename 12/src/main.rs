@@ -42,83 +42,85 @@ fn get_lin_pos(length: &u32, position: &(u32, u32)) -> usize {
     (length * position.1 + position.0) as usize
 }
 
-fn check_char_at(content: &Vec<char>, current_char: &char, length: &u32, cur_pos: &(u32, u32), position: &(u32, u32), dists: &mut Vec<(u32, (u32, u32))>) {
+fn check_char_at(content: &Vec<char>, current_char: &char, length: &u32, cur_pos: &(u32, (u32, u32)), position: &(u32, u32), dists: &mut Vec<(u32, (u32, u32))>) {
 
     let mut char_at : &char = &char::default();
     char_at = content.get(get_lin_pos(length, position)).unwrap();
 
-    let mut val = ((*current_char as u32)+1);
-    let mut dist = 0;
+    let mut val = (*current_char as u32)+1;
+    let mut dist = cur_pos.0;
     if current_char == &'S' {
         val = ('a' as u32) + 1;
         dist = 1;
-    } else {
-        if let Some(cur) =  dists.iter().position(|e| e.1 == *cur_pos) {
-            dist = (dists.get(cur).unwrap().0) + 1;
-            dists.remove(cur);
-        }
     }
+    if char_at == &'E' && current_char != &'z' {
+        return;
+    }
+
     if val >= (*char_at as u32) {
         if let Some(id) = dists.iter().position(|e| e.1 == *position) {
-            dists.get_mut(id).unwrap().0 = u32::min(dists.get(id).unwrap().0, dist);
+            //println!("dists {} {:?}",u32::min(dists.get(id).unwrap().0, dist+1), cur_pos);
+            dists.get_mut(id).unwrap().0 = u32::min(dists.get(id).unwrap().0, dist+1);
         }
     }
-    println!("{:?}", dists);
 
 }
 
-fn walk_path(content: &Vec<char>, visited: &Vec<(u32, u32)>, length: &u32, position: (u32, u32), paths: &mut HashMap<u32, Vec<(u32, u32)>>, dists: &mut Vec<(u32, (u32, u32))>) {
+fn walk_path(content: &Vec<char>, length: &u32, position: (u32,(u32, u32)),  dists: &mut Vec<(u32, (u32, u32))>) -> u32 {
     let mut current_char = &char::default();
     let mut cur_pos = position;
-    let mut vis: Vec<(u32, u32)> = Vec::new();
-    let mut ds: Vec<(i32, (u32, u32))> = Vec::new();
+    let mut vis = Vec::new();
     loop {
-        current_char = content.get(get_lin_pos(length, &cur_pos)).unwrap();
+        //print!(" {:?}", cur_pos);
+        current_char = content.get(get_lin_pos(length, &cur_pos.1)).unwrap();
         //println!("cc {} pos {:?}", current_char, position);
         if current_char == &'E' {
-            //println!("{} {:?}", local_visited.len(), local_visited);
-            return;
+            //println!("{:?}\n{:?}", cur_pos, vis);
+            return cur_pos.0;
         }
 
 
-        if cur_pos.0 < *length - 1 {
-            let p_r = (cur_pos.0 + 1, cur_pos.1);
-            if !vis.contains(&p_r) {
-               check_char_at(content, current_char, length, &cur_pos, &p_r,  dists);
-            }
-        }
-        if cur_pos.1 < (content.len() as u32) / length - 1 {
-            let p_u = (cur_pos.0, cur_pos.1 + 1);
-            if !vis.contains(&p_u) {
-                check_char_at(content, current_char, length,&cur_pos,  &p_u, dists);
-            }
-        }
-        if cur_pos.1 > 0 {
-            let p_d = (cur_pos.0, cur_pos.1 - 1);
-            if !vis.contains(&p_d) {
-                check_char_at(content, current_char, length, &cur_pos, &p_d, dists);
-            }
-        }
-        if cur_pos.0 > 0 {
-            let p_l = (cur_pos.0 - 1, cur_pos.1);
-
-            if !vis.contains(&p_l) {
-                check_char_at(content, current_char, length, &cur_pos, &p_l, dists);
-            }
+        if cur_pos.1.0 < *length - 1 {
+            let p_r = (cur_pos.1.0 + 1, cur_pos.1.1);
+            check_char_at(content, current_char, length, &cur_pos, &p_r, dists);
 
         }
+        if cur_pos.1.1 < (content.len() as u32) / length - 1 {
+            let p_u = (cur_pos.1.0, cur_pos.1.1 + 1);
+            check_char_at(content, current_char, length,&cur_pos,  &p_u, dists);
 
+        }
+        if cur_pos.1.1 > 0 {
+            let p_d = (cur_pos.1.0, cur_pos.1.1 - 1);
+            check_char_at(content, current_char, length, &cur_pos, &p_d, dists);
+        }
+        if cur_pos.1.0 > 0 {
+            let p_l = (cur_pos.1.0 - 1, cur_pos.1.1);
+            check_char_at(content, current_char, length, &cur_pos, &p_l, dists);
+        }
+
+        let min = dists.iter().min_by(|a, b| a.0.cmp(&b.0) ).map(|e| e).unwrap();
+        if min.0 == u32::MAX {
+            return u32::MAX;
+        }
+
+        cur_pos = dists.remove(dists.iter().position(|e| e.1 == min.1).unwrap());
         vis.push(cur_pos);
-        cur_pos = dists.iter().min_by(|a, b| a.0.cmp(&b.0) ).map(|e| e.1 ).unwrap();
     }
 
 }
 
 fn first_part(content: &Vec<char>, length: &u32, mut dists: &mut Vec<(u32, (u32, u32))>)  {
-    let mut visited = Vec::new();
-    let mut paths: HashMap<u32, Vec<(u32, u32)>> = HashMap::new();
-    walk_path(content, &mut visited, length, (0,0), &mut paths, &mut dists);
-    paths.into_iter().for_each(|e| println!("{} {:?}", e.0, e.1));
+    let mut res = content.iter().enumerate().map(|(id ,c)| {
+        if c == &'a' || c == &'S' {
+            let mut l_d = dists.clone();
+            let pos:(u32, u32) = (id as u32 % length, id as u32 / length);
+            return walk_path(content, length, (0, pos),  &mut l_d);
+        }
+        u32::MAX
+    }).collect::<Vec<u32>>();
+    res.sort();
+    println!("{}", res.first().unwrap());
 }
 
 
