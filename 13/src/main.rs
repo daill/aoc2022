@@ -8,6 +8,7 @@ use std::ops::{Deref, Range};
 use std::rc::Rc;
 use std::slice::RSplit;
 use std::str::Chars;
+use std::sync::mpsc::channel;
 
 #[derive(Debug, Clone)]
 enum Token {
@@ -24,37 +25,40 @@ fn read_from_file() -> Vec<Token> {
             for line in lines {
                 let mut stack = vec![vec![]];
                 let mut element = String::default();
-                let mut idx = 0;
                 if let Ok(line) = line {
                     if line.is_empty() {
                         continue;
                     }
                     let mut element = String::default();
 
-                    line.chars().skip(1).for_each(|e| {
+                    line.chars().enumerate().for_each(|(i, e)| {
                         match e {
                             '[' => {
                                 stack.push(vec![]);
-                                idx += 1;
                             },
                             ',' => {
                                 if element != String::default() {
+                                    let idx = stack.len()-1;
                                     stack.get_mut(idx).unwrap().push(Token::Number(element.parse::<u32>().unwrap()));
                                     element = String::default();
                                 }
                             },
                             ']' => {
                                 if element != String::default() {
+                                    let idx = stack.len()-1;
                                     stack.get_mut(idx).unwrap().push(Token::Number(element.parse::<u32>().unwrap()));
                                     element = String::default();
                                 }
-                                idx -= 1;
+                                let v = stack.pop().unwrap();
+                                let idx = stack.len()-1;
+                                stack.get_mut(idx).unwrap().push(Token::List(Box::from(v)));
                             }
                             _ => {element.push(e)}
                         }
                     });
                 }
                 println!("content {:?}", stack);
+                content.p
             }
             content
         },
