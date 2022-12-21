@@ -2,6 +2,7 @@ use std::fs::File;
 use std::{io, usize};
 use std::any::{Any, TypeId};
 use core::fmt::Debug;
+use std::cmp::Ordering;
 use std::fmt::Formatter;
 use std::io::BufRead;
 use std::ops::{Deref, Range};
@@ -32,6 +33,7 @@ fn read_from_file() -> Vec<Token> {
                     if line.is_empty() {
                         continue;
                     }
+                    println!("line {}", line);
                     let mut element = String::default();
 
                     line.chars().enumerate().for_each(|(i, e)| {
@@ -57,7 +59,7 @@ fn read_from_file() -> Vec<Token> {
                         }
                     });
                 }
-                println!("content {:?}", stack);
+                println!("content {:?} \n", stack);
                 content.push(Token::List(Box::from((stack.pop().unwrap()))));
             }
             content
@@ -69,40 +71,37 @@ fn read_from_file() -> Vec<Token> {
 
 
 
-fn cmp(left: &Token, right: &Token) -> bool {
+fn cmp(left: &Token, right: &Token) -> Ordering {
     match (left, right) {
         (Token::Number(left_value), Token::Number(right_value)) => {
-            println!("{} {}", left_value, right_value);
-            if left_value > right_value {
-                return false;
-            }
-            true
+            left_value.cmp(&right_value)
         },
         (Token::Number(left_value), Token::List(right_value)) => {
             cmp(&Token::List(Box::from(vec![Token::Number(left_value.clone())])), right)
+
         },
         (Token::List(left_value), Token::Number(right_value)) => {
             cmp(left, &Token::List(Box::from(vec![Token::Number(right_value.clone())])))
         }
         (Token::List(left_value), Token::List(right_value)) => {
-            let mut i = 0;
-            let mut ret = false;
+            let mut l_iter = left_value.iter();
+            let mut r_iter = right_value.iter();
             loop {
-                if i < left_value.len() && i < right_value.len() {
-
-                    if cmp(&left_value[i], &right_value[i]) == false {
-                        ret = false;
-                        break;
-                    }
+                let (left, right) = (l_iter.next(), r_iter.next());
+                if left.is_none() && right.is_none() {
+                    return Ordering::Equal;
+                } else if left.is_some() && right.is_none() {
+                    return Ordering::Greater;
+                } else if left.is_none() && right.is_some() {
+                    return Ordering::Less;
                 } else {
-                    break;
+                    let ret = cmp(left.unwrap(), right.unwrap());
+                    if ret != Ordering::Equal {
+                        return ret;
+                    }
                 }
-                i += 1;
             }
-            ret = (left_value.len() < right_value.len());
-            return ret;
         }
-        _ => false
     }
 }
 
@@ -110,14 +109,38 @@ fn cmp(left: &Token, right: &Token) -> bool {
 fn main() {
     let content: Vec<Token> = read_from_file();
 
-    for i in (0..content.len()).step_by(2) {
-        let left = content.get(i).unwrap();
-        let right = content.get(i+1).unwrap();
+    let mut cnt = 0;
+    let mut id = 0;
+    for pair in content.chunks(2) {
+        id += 1;
+        let res = cmp(&pair[0], &pair[1]);
+        println!("{:?} {:?} {:?} \n", res, &pair[0], &pair[1]);
+        if res == Ordering::Less {
+            cnt += id;
 
-        println!("{}", cmp(left, right));
+        }
+    }
+    println!("{}", cnt);
+
+    let mut two_id = 1;
+
+    let mut six_id = 2;
+    let two = Token::List(Box::from(vec![Token::List(Box::from(vec![Token::Number(2)]))]));
+    let six = Token::List(Box::from(vec![Token::List(Box::from(vec![Token::Number(6)]))]));
+    for pair in content.chunks(2) {
+        for i in 0..2 {
+            if cmp(&two, &pair[i]) == Ordering::Greater {
+                two_id += 1;
+            }
+
+            if cmp( &six, &pair[i]) == Ordering::Greater {
+                println!("{:?}", &pair[i]);
+                six_id += 1;
+            }
+        }
     }
 
-    println!("content {:?}", &content);
+    println!("{} {}", two_id, six_id);
 
 
 
