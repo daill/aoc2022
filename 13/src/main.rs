@@ -89,22 +89,18 @@ fn cmp(left: &Token, right: &Token) -> bool {
             let mut ret = false;
             loop {
                 if i < left_value.len() && i < right_value.len() {
-                    if let (Some(l_token), Some(r_token)) = (left_value.get(i), right_value.get(i)) {
-                        ret = cmp(l_token, r_token);
-                        if ret == false {
-                            break;
-                        }
+
+                    if cmp(&left_value[i], &right_value[i]) == false {
+                        ret = false;
+                        break;
                     }
-                } else if i >= left_value.len() && i < right_value.len(){
-                    ret = true;
-                    break;
                 } else {
                     break;
                 }
                 i += 1;
-
             }
-            ret
+            ret = (left_value.len() < right_value.len());
+            return ret;
         }
         _ => false
     }
