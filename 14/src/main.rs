@@ -12,12 +12,23 @@ use std::rc::Rc;
 use std::slice::RSplit;
 use std::str::Chars;
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, Clone)]
 struct Sand {
     point: (i32, i32),
     left: Option<Box<Sand>>,
     mid: Option<Box<Sand>>,
     right: Option<Box<Sand>>,
+}
+
+impl Hash for Sand {
+    fn hash<H>(&self, state: &mut H)
+        where
+            H: std::hash::Hasher,
+    {
+        state.write_i32(self.point.0);
+        state.write_i32(self.point.1);
+        state.finish();
+    }
 }
 
 impl PartialEq for Sand {
@@ -84,7 +95,7 @@ fn read_from_file() -> HashSet<(i32, i32)> {
 }
 
 fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
-    let mut snowflakes: HashSet<Sand> = HashSet::new();
+    let mut snowflakes: Vec<Sand> = HashSet::new();
     let mut bottom = (0,0);
     // check where the end is
     if let Some(id) = content.iter().find(|(x,_)| x == &start_position.0) {
@@ -101,7 +112,7 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
     base.mid = Some(Box::from(Sand::new(&(bottom.0 + 1), &bottom.1)));
 
     let mut current = &mut base;
-    snowflakes.insert(current.clone());
+    snowflakes.push(current.clone());
 
     let mut mut_point = current.point;
     let mut try_left  =true;
@@ -122,11 +133,11 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
             if let Some(it) = &it.right {
                 if content.contains(&it.point) {
                     let mut head = Sand::new(&(base.point.0), &(base.point.1-1));
-                    snowflakes.insert(((it.point.0), (it.point.1 - 1)));
+                    snowflakes.insert(Sand::new(&(it.point.0), &(it.point.1 - 1)));
                 }
             } else {
                 it.left = Some(Box::from(Sand::new(&(it.point.0 + 1), &(it.point.1 + 1))));
-                snowflakes.insert(((it.point.0 + 1), (it.point.1 + 1)));
+                snowflakes.insert(Sand::new(&(it.point.0 + 1), &(it.point.1 + 1)));
             }
         }
     }
