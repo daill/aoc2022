@@ -94,8 +94,12 @@ fn read_from_file() -> HashSet<(i32, i32)> {
     return paths;
 }
 
+fn iter(p: &(i32, i32)) -> (i32, i32) {
+    
+}
+
 fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
-    let mut snowflakes: Vec<Sand> = HashSet::new();
+    let mut snowflakes: HashSet<(i32, i32)> = HashSet::new();
     let mut bottom = (0,0);
     // check where the end is
     if let Some(id) = content.iter().find(|(x,_)| x == &start_position.0) {
@@ -106,40 +110,22 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
     let left = content.iter().min_by(|e, f| e.0.cmp(&f.0)).unwrap().0;
     let right = content.iter().max_by(|e, f| e.0.cmp(&f.0)).unwrap().0;
 
-    let mut base = Sand::new(&bottom.0, &(bottom.1-1));
-    base.mid = Some(Box::from(Sand::new(&bottom.0, &bottom.1)));
-    base.mid = Some(Box::from(Sand::new(&(bottom.0 - 1), &bottom.1)));
-    base.mid = Some(Box::from(Sand::new(&(bottom.0 + 1), &bottom.1)));
+    // start flake
+    let mut current_y = bottom.1-1;
+    let mut it = (start_position.0, current_y);
+    snowflakes.insert(it);
 
-    let mut current = &mut base;
-    snowflakes.push(current.clone());
-
-    let mut mut_point = current.point;
-    let mut try_left  =true;
     loop {
-        let mut it = &mut base;
-        if try_left {
-            if let Some(it) = &it.left {
-                if content.contains(&it.point) {
-                    //try right
-                    try_left = false;
-                }
-            } else {
-                it.left = Some(Box::from(Sand::new(&(it.point.0 - 1), &(it.point.1 + 1))));
-                snowflakes.insert((Sand::new(&(it.point.0 - 1), &(it.point.1 + 1))));
+        let mut id = 1;
+        while l = snowflakes.contains(&(it.0-id, it.1)) {
+            if !content.contains(&(it.0-id, it.1)) {
+
             }
-        } else {
-            it = &mut base;
-            if let Some(it) = &it.right {
-                if content.contains(&it.point) {
-                    let mut head = Sand::new(&(base.point.0), &(base.point.1-1));
-                    snowflakes.insert(Sand::new(&(it.point.0), &(it.point.1 - 1)));
-                }
-            } else {
-                it.left = Some(Box::from(Sand::new(&(it.point.0 + 1), &(it.point.1 + 1))));
-                snowflakes.insert(Sand::new(&(it.point.0 + 1), &(it.point.1 + 1)));
-            }
+            id += 1;
         }
+        let r = snowflakes.contains(&(it.0+1, it.1));
+        let ll = snowflakes.contains(&(it.0-1, it.1+1));
+        let lr = snowflakes.contains(&(it.0-1, it.1+1));
     }
 
 }
