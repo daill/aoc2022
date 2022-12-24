@@ -98,53 +98,53 @@ fn read_from_file() -> HashSet<(i32, i32)> {
 fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
     let mut snowflakes: HashSet<(i32, i32)> = HashSet::new();
     let mut bottom = (0,0);
-    // check where the end is
-    if let Some(id) = content.iter().find(|(x,_)| x == &start_position.0) {
-        println!("{:?}", id);
-        bottom = id.clone();
-    }
 
-    let left = content.iter().min_by(|e, f| e.0.cmp(&f.0)).unwrap();
-    let right = content.iter().max_by(|e, f| e.0.cmp(&f.0)).unwrap();
-
+    let high = content.iter().filter(|e| e.0 == start_position.0).min_by(|e, f| e.1.cmp(&f.1)).unwrap().1;
     let low = content.iter().max_by(|e, f| e.1.cmp(&f.1)).unwrap().1;
 
     // start flake
-    let mut current_y = bottom.1-1;
+    let mut current_y = high-1;
     let mut it = (start_position.0, current_y);
     snowflakes.insert(it);
+    let mut cnt = 0;
 
     'outer: loop {
         let mut next_flake = (start_position.0, current_y);
         let mut cycle = 1;
         let mut try_right = false;
         let mut b_offset = 0;
+        cnt += 1;
 
         loop {
-
-            if next_flake.1+cycle > left.1 {
+            if next_flake.1 + cycle + b_offset > low {
                 break 'outer;
             }
+
             if !try_right {
-                if !snowflakes.contains(&(next_flake.0 - cycle+1, next_flake.1 + cycle)) && !snowflakes.contains(&(next_flake.0 - cycle+1, next_flake.1 + cycle)) {
-                    println!("no ground {:?}",&(next_flake.0 - cycle+1, next_flake.1 + cycle));
-                }
-                let l = &(next_flake.0 - cycle, next_flake.1 + cycle);
+                let l = &(next_flake.0 - cycle, next_flake.1 + cycle + b_offset);
                 if snowflakes.contains(l) || content.contains(l) {
                     if cycle == 1 {
                         // try right
                         try_right = true;
+                        b_offset = 0;
                     } else {
-                        println!("{:?}", &(next_flake.0 - cycle + 1, next_flake.1 + cycle - 1));
-                        snowflakes.insert((next_flake.0 - cycle + 1, next_flake.1 + cycle - 1));
+                        println!("{:?}", &(next_flake.0 - cycle + 1, next_flake.1 + cycle - 1 + b_offset));
+                        snowflakes.insert((next_flake.0 - cycle + 1, next_flake.1 + cycle - 1 + b_offset));
                         cycle = 1;
+                        b_offset = 0;
                         break;
                     }
                 } else {
-                    cycle += 1;
+                    if !snowflakes.contains(&(next_flake.0 - cycle+1, next_flake.1 + cycle + b_offset)) && !content.contains(&(next_flake.0 - cycle+1, next_flake.1 + cycle + b_offset)) {
+                        println!("no ground {:?}",&(next_flake.0 - cycle+1, next_flake.1 + cycle + b_offset));
+                        b_offset += 1;
+                    } else {
+                        cycle += 1;
+                    }
                 }
             } else {
-                let r = &(next_flake.0 + cycle, next_flake.1 + cycle);
+
+                let r = &(next_flake.0 + cycle, next_flake.1 + cycle + b_offset);
                 if snowflakes.contains(r) || content.contains(r) {
                     if cycle == 1 {
                         current_y -= 1;
@@ -156,15 +156,21 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
                         println!("{:?}", &(next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
                         snowflakes.insert((next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
                         cycle = 1;
+                        b_offset = 0;
                         break;
                     }
                 } else {
-                    cycle += 1;
+                    if !snowflakes.contains(&(next_flake.0 + cycle - 1, next_flake.1 + cycle + b_offset)) && !content.contains(&(next_flake.0 + cycle - 1, next_flake.1 + cycle + b_offset)) {
+                        println!("no ground {:?}",&(next_flake.0 + cycle - 1, next_flake.1 + cycle + b_offset));
+                        b_offset += 1;
+                    } else {
+                        cycle += 1;
+                    }
                 }
             }
         }
     }
-
+    println!("{} {}", cnt, snowflakes.len());
 }
 
 fn main() {
