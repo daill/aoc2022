@@ -110,64 +110,23 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
 
     'outer: loop {
         let mut next_flake = (start_position.0, current_y);
-        let mut cycle = 1;
-        let mut try_right = false;
-        let mut b_offset = 0;
         cnt += 1;
 
         loop {
-            if next_flake.1 + cycle + b_offset > low {
+            if next_flake.1 > low {
                 break 'outer;
             }
 
-            if !try_right {
-                let l = &(next_flake.0 - cycle, next_flake.1 + cycle + b_offset);
-                if snowflakes.contains(l) || content.contains(l) {
-                    if cycle == 1 {
-                        // try right
-                        try_right = true;
-                        b_offset = 0;
-                    } else {
-                        println!("{:?}", &(next_flake.0 - cycle + 1, next_flake.1 + cycle - 1 + b_offset));
-                        snowflakes.insert((next_flake.0 - cycle + 1, next_flake.1 + cycle - 1 + b_offset));
-                        cycle = 1;
-                        b_offset = 0;
-                        break;
-                    }
-                } else {
-                    if !snowflakes.contains(&(next_flake.0 - cycle+1, next_flake.1 + cycle + b_offset)) && !content.contains(&(next_flake.0 - cycle+1, next_flake.1 + cycle + b_offset)) {
-                        println!("no ground {:?}",&(next_flake.0 - cycle+1, next_flake.1 + cycle + b_offset));
-                        b_offset += 1;
-                    } else {
-                        cycle += 1;
-                    }
-                }
-            } else {
-
-                let r = &(next_flake.0 + cycle, next_flake.1 + cycle + b_offset);
-                if snowflakes.contains(r) || content.contains(r) {
-                    if cycle == 1 {
-                        current_y -= 1;
-
-                        println!("{:?}", next_flake);
-                        snowflakes.insert(next_flake);
-                        break;
-                    } else {
-                        println!("{:?}", &(next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
-                        snowflakes.insert((next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
-                        cycle = 1;
-                        b_offset = 0;
-                        break;
-                    }
-                } else {
-                    if !snowflakes.contains(&(next_flake.0 + cycle - 1, next_flake.1 + cycle + b_offset)) && !content.contains(&(next_flake.0 + cycle - 1, next_flake.1 + cycle + b_offset)) {
-                        println!("no ground {:?}",&(next_flake.0 + cycle - 1, next_flake.1 + cycle + b_offset));
-                        b_offset += 1;
-                    } else {
-                        cycle += 1;
-                    }
-                }
+            if !content.contains(next_flake + (0 as i32,1 as i32)) && !snowflakes.contains(next_flake + (0 as i32,1 as i32)) {
+                next_flake = (next_flake + (0,1));
+            } else if !content.contains(next_flake + (1,1) as i32) && !snowflakes.contains(next_flake + (1 as i32,1 as i32)) {
+                next_flake = (next_flake + (1,1));
+            } else if !content.contains(next_flake + (-1 as i32,1 as i32)) && !snowflakes.contains(next_flake + (-1 as i32,1 as i32)) {
+                next_flake = (next_flake + (-1,1));
             }
+            snowflakes.insert(next_flake);
+            println!("added {:?}", next_flake);
+
         }
     }
     println!("{} {}", cnt, snowflakes.len());
