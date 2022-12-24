@@ -12,42 +12,6 @@ use std::rc::Rc;
 use std::slice::RSplit;
 use std::str::Chars;
 
-#[derive(Debug, Eq, Clone)]
-struct Sand {
-    point: (i32, i32),
-    left: Option<Box<Sand>>,
-    mid: Option<Box<Sand>>,
-    right: Option<Box<Sand>>,
-}
-
-impl Hash for Sand {
-    fn hash<H>(&self, state: &mut H)
-        where
-            H: std::hash::Hasher,
-    {
-        state.write_i32(self.point.0);
-        state.write_i32(self.point.1);
-        state.finish();
-    }
-}
-
-impl PartialEq for Sand {
-    fn eq(&self, other: &Self) -> bool {
-        self.point.0 == other.point.0 && self.point.1 == other.point.1
-    }
-}
-
-
-impl Sand {
-    fn new(x: &i32, y: &i32) -> Sand {
-        Sand {
-            point: (x.clone(), y.clone()),
-            left: None,
-            mid: None,
-            right: None,
-        }
-    }
-}
 
 fn read_from_file() -> HashSet<(i32, i32)> {
     let mut file = File::open("input");
@@ -95,9 +59,50 @@ fn read_from_file() -> HashSet<(i32, i32)> {
 }
 
 
+fn second_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
+    let mut snowflakes: HashSet<(i32, i32)> = HashSet::new();
+
+    let high = content.iter().filter(|e| e.0 == start_position.0).min_by(|e, f| e.1.cmp(&f.1)).unwrap().1;
+    let low = content.iter().max_by(|e, f| e.1.cmp(&f.1)).unwrap().1+2;
+
+    // start flake
+    let mut current_y = high-1;
+    let mut it = (start_position.0, current_y);
+    snowflakes.insert(it);
+    let mut cnt = 0;
+
+    'outer: loop {
+        let mut next_flake = (start_position.0, current_y);
+        cnt += 1;
+
+        loop {
+
+            if !content.contains(&(next_flake.0, next_flake.1+1)) && !snowflakes.contains(&(next_flake.0, next_flake.1+1)) && !(next_flake.1+1 == low as i32) {
+                next_flake = (next_flake.0, next_flake.1+1);
+            } else if !content.contains(&(next_flake.0-1, next_flake.1+1)) && !snowflakes.contains(&(next_flake.0-1, next_flake.1+1)) && !(next_flake.1+1 == low as i32){
+                next_flake = (next_flake.0-1, next_flake.1+1);
+            } else if !content.contains(&(next_flake.0+1, next_flake.1+1)) && !snowflakes.contains(&(next_flake.0+1, next_flake.1+1)) && !(next_flake.1+1 == low as i32){
+                next_flake = (next_flake.0+1, next_flake.1+1);
+            } else {
+                break;
+            }
+
+        }
+        if next_flake.1 == current_y {
+            current_y -= 1;
+        }
+        println!("added {:?}", next_flake);
+        snowflakes.insert(next_flake);
+
+        if next_flake == start_position {
+            break 'outer;
+        }
+    }
+    println!("{} {}", cnt, snowflakes.len());
+}
+
 fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
     let mut snowflakes: HashSet<(i32, i32)> = HashSet::new();
-    let mut bottom = (0,0);
 
     let high = content.iter().filter(|e| e.0 == start_position.0).min_by(|e, f| e.1.cmp(&f.1)).unwrap().1;
     let low = content.iter().max_by(|e, f| e.1.cmp(&f.1)).unwrap().1;
@@ -113,27 +118,34 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
         cnt += 1;
 
         loop {
-            if next_flake.1 > low {
+            if next_flake.1 >= low {
                 break 'outer;
             }
 
-            if !content.contains(next_flake + (0 as i32,1 as i32)) && !snowflakes.contains(next_flake + (0 as i32,1 as i32)) {
-                next_flake = (next_flake + (0,1));
-            } else if !content.contains(next_flake + (1,1) as i32) && !snowflakes.contains(next_flake + (1 as i32,1 as i32)) {
-                next_flake = (next_flake + (1,1));
-            } else if !content.contains(next_flake + (-1 as i32,1 as i32)) && !snowflakes.contains(next_flake + (-1 as i32,1 as i32)) {
-                next_flake = (next_flake + (-1,1));
+            if !content.contains(&(next_flake.0, next_flake.1+1)) && !snowflakes.contains(&(next_flake.0, next_flake.1+1)) {
+                next_flake = (next_flake.0, next_flake.1+1);
+            } else if !content.contains(&(next_flake.0-1, next_flake.1+1)) && !snowflakes.contains(&(next_flake.0-1, next_flake.1+1)) {
+                next_flake = (next_flake.0-1, next_flake.1+1);
+            } else if !content.contains(&(next_flake.0+1, next_flake.1+1)) && !snowflakes.contains(&(next_flake.0+1, next_flake.1+1)) {
+                next_flake = (next_flake.0+1, next_flake.1+1);
+            } else {
+                break;
             }
-            snowflakes.insert(next_flake);
-            println!("added {:?}", next_flake);
 
         }
+        if next_flake.1 == current_y {
+            current_y -= 1;
+        }
+        println!("added {:?}", next_flake);
+        snowflakes.insert(next_flake);
     }
     println!("{} {}", cnt, snowflakes.len());
 }
 
 fn main() {
     let content: HashSet<(i32, i32)> = read_from_file();
-    first_part(&content, (500,0));
+    //first_part(&content, (500,0));
+
+    second_part(&content, (500,0));
 
 }
