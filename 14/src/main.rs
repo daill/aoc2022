@@ -104,55 +104,62 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
         bottom = id.clone();
     }
 
-    let left = content.iter().min_by(|e, f| e.0.cmp(&f.0)).unwrap().0;
-    let right = content.iter().max_by(|e, f| e.0.cmp(&f.0)).unwrap().0;
+    let left = content.iter().min_by(|e, f| e.0.cmp(&f.0)).unwrap();
+    let right = content.iter().max_by(|e, f| e.0.cmp(&f.0)).unwrap();
+
+    let low = content.iter().max_by(|e, f| e.1.cmp(&f.1)).unwrap().1;
 
     // start flake
     let mut current_y = bottom.1-1;
     let mut it = (start_position.0, current_y);
     snowflakes.insert(it);
 
-    loop {
+    'outer: loop {
         let mut next_flake = (start_position.0, current_y);
         let mut cycle = 1;
         let mut try_right = false;
-        if content.contains(&(next_flake.0-1, next_flake.1)) {
-            // left bound rock go check right
-        } else {
-            loop {
-                if !try_right {
-                    let l = &(next_flake.0 - cycle, next_flake.1 + cycle);
-                    if snowflakes.contains(l) || content.contains(l) {
-                        if cycle == 1 {
-                            // try right
-                            try_right = true;
-                        } else {
-                            println!("{:?}", &(next_flake.0 - cycle + 1, next_flake.1 + cycle - 1));
-                            snowflakes.insert((next_flake.0 - cycle + 1, next_flake.1 + cycle - 1));
-                            cycle = 1;
-                            break;
-                        }
+        let mut b_offset = 0;
+
+        loop {
+
+            if next_flake.1+cycle > left.1 {
+                break 'outer;
+            }
+            if !try_right {
+                if !snowflakes.contains(&(next_flake.0 - cycle+1, next_flake.1 + cycle)) && !snowflakes.contains(&(next_flake.0 - cycle+1, next_flake.1 + cycle)) {
+                    println!("no ground {:?}",&(next_flake.0 - cycle+1, next_flake.1 + cycle));
+                }
+                let l = &(next_flake.0 - cycle, next_flake.1 + cycle);
+                if snowflakes.contains(l) || content.contains(l) {
+                    if cycle == 1 {
+                        // try right
+                        try_right = true;
                     } else {
-                        cycle += 1;
+                        println!("{:?}", &(next_flake.0 - cycle + 1, next_flake.1 + cycle - 1));
+                        snowflakes.insert((next_flake.0 - cycle + 1, next_flake.1 + cycle - 1));
+                        cycle = 1;
+                        break;
                     }
                 } else {
-                    let r = &(next_flake.0 + cycle, next_flake.1 + cycle);
-                    if snowflakes.contains(r) || content.contains(r) {
-                        if cycle == 1 {
-                            current_y -= 1;
+                    cycle += 1;
+                }
+            } else {
+                let r = &(next_flake.0 + cycle, next_flake.1 + cycle);
+                if snowflakes.contains(r) || content.contains(r) {
+                    if cycle == 1 {
+                        current_y -= 1;
 
-                            println!("{:?}", next_flake);
-                            snowflakes.insert(next_flake);
-                            break;
-                        } else {
-                            println!("{:?}", &(next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
-                            snowflakes.insert((next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
-                            cycle = 1;
-                            break;
-                        }
+                        println!("{:?}", next_flake);
+                        snowflakes.insert(next_flake);
+                        break;
                     } else {
-                        cycle += 1;
+                        println!("{:?}", &(next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
+                        snowflakes.insert((next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
+                        cycle = 1;
+                        break;
                     }
+                } else {
+                    cycle += 1;
                 }
             }
         }
