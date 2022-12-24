@@ -94,9 +94,6 @@ fn read_from_file() -> HashSet<(i32, i32)> {
     return paths;
 }
 
-fn iter(p: &(i32, i32)) -> (i32, i32) {
-    
-}
 
 fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
     let mut snowflakes: HashSet<(i32, i32)> = HashSet::new();
@@ -116,16 +113,46 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
     snowflakes.insert(it);
 
     loop {
-        let mut id = 1;
-        while l = snowflakes.contains(&(it.0-id, it.1)) {
-            if !content.contains(&(it.0-id, it.1)) {
+        let mut next_flake = (start_position.0, current_y-1);
+        let mut cycle = 1;
+        let mut try_right = false;
+        if content.contains(&(next_flake.0-1, next_flake.1)) {
+            // left bound rock go check right
+        } else {
+            loop {
+                if !try_right {
+                    let l = &(next_flake.0 - cycle, next_flake.1 + cycle);
+                    if snowflakes.contains(l) || content.contains(l) {
+                        if cycle == 1 {
+                            // try right
+                            try_right = true;
+                        } else {
+                            println!("{:?}", &(next_flake.0 - cycle + 1, next_flake.1 + cycle - 1));
+                            snowflakes.insert((next_flake.0 - cycle + 1, next_flake.1 + cycle - 1));
+                            cycle = 1;
+                            break;
+                        }
+                    } else {
+                        cycle += 1;
+                    }
+                } else {
+                    let r = &(next_flake.0 + cycle, next_flake.1 + cycle);
+                    if snowflakes.contains(r) || content.contains(r) {
+                        if cycle == 1 {
+                            current_y -= 1;
 
+                        } else {
+                            println!("{:?}", &(next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
+                            snowflakes.insert((next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
+                            cycle = 1;
+                            break;
+                        }
+                    } else {
+                        cycle += 1;
+                    }
+                }
             }
-            id += 1;
         }
-        let r = snowflakes.contains(&(it.0+1, it.1));
-        let ll = snowflakes.contains(&(it.0-1, it.1+1));
-        let lr = snowflakes.contains(&(it.0-1, it.1+1));
     }
 
 }
