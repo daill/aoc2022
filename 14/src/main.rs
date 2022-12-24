@@ -68,15 +68,15 @@ fn read_from_file() -> HashSet<(i32, i32)> {
                         if let Some(rock) = rocks.pop() {
                             if let Some(next_rock) = rocks.last() {
                                 if rock.0 == next_rock.0 {
-                                    let mut ys = (rock.1..next_rock.1);
+                                    let mut ys = (rock.1..next_rock.1+1);
                                     if rock.1 > next_rock.1{
-                                        ys = (next_rock.1..rock.1);
+                                        ys = (next_rock.1..rock.1+1);
                                     }
                                     paths.extend(ys.map(|y| (rock.0, y)).collect::<HashSet<(i32,i32)>>());
                                 } else {
-                                    let mut xs = (rock.0..next_rock.0);
+                                    let mut xs = (rock.0..next_rock.0+1);
                                     if rock.0 > next_rock.0{
-                                        xs = (next_rock.0..rock.0);
+                                        xs = (next_rock.0..rock.0+1);
                                     }
                                     paths.extend(xs.map(|x| (x, rock.1)).collect::<HashSet<(i32,i32)>>());
                                 }
@@ -113,7 +113,7 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
     snowflakes.insert(it);
 
     loop {
-        let mut next_flake = (start_position.0, current_y-1);
+        let mut next_flake = (start_position.0, current_y);
         let mut cycle = 1;
         let mut try_right = false;
         if content.contains(&(next_flake.0-1, next_flake.1)) {
@@ -141,6 +141,9 @@ fn first_part(content: &HashSet<(i32, i32)>, start_position: (i32, i32)) {
                         if cycle == 1 {
                             current_y -= 1;
 
+                            println!("{:?}", next_flake);
+                            snowflakes.insert(next_flake);
+                            break;
                         } else {
                             println!("{:?}", &(next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
                             snowflakes.insert((next_flake.0 + cycle - 1, next_flake.1 + cycle - 1));
