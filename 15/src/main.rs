@@ -1,8 +1,7 @@
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fs::File;
 use std::io;
 use std::io::BufRead;
-use std::ptr::swap_nonoverlapping;
 use regex::Regex;
 
 #[derive(Debug, Clone)]
@@ -29,10 +28,10 @@ impl Sensor {
 }
 
 
-fn read_from_file() -> (Vec<Sensor>, Vec<(i32, i32)>, i32, i32) {
+fn read_from_file() -> (Vec<Sensor>, HashSet<(i32, i32)>, i32, i32) {
     let mut file = File::open("input");
     let mut sensors:Vec<Sensor> = Vec::new();
-    let mut beacons:Vec<(i32, i32)> = Vec::new();
+    let mut beacons:HashSet<(i32, i32)> = HashSet::new();
     let mut min = 0;
     let mut max = 0;
     match file {
@@ -44,7 +43,7 @@ fn read_from_file() -> (Vec<Sensor>, Vec<(i32, i32)>, i32, i32) {
                     let caps = re.captures(&line).unwrap();
                     let pos: (i32, i32) = (caps.get(1).map_or(0 as i32, |e| e.as_str().parse::<i32>().unwrap()), caps.get(2).map_or(0 as i32, |e| e.as_str().parse::<i32>().unwrap()));
                     let beacon= (caps.get(3).map_or(0 as i32, |e| e.as_str().parse::<i32>().unwrap()), caps.get(4).map_or(0 as i32, |e| e.as_str().parse::<i32>().unwrap()));
-                    beacons.push(beacon);
+                    beacons.insert(beacon);
                     if pos.0 < min || beacon.0 < min {
                         min = pos.0.min(beacon.0);
                     }
@@ -89,8 +88,55 @@ fn first_part(content: &(Vec<Sensor>, Vec<(i32, i32)>, i32, i32)) {
     println!("{}", positions.len() );
 }
 
+
+fn second_part(content: &(Vec<Sensor>, HashSet<(i32, i32)>, i32, i32)) {
+
+    let sensors = &content.0;
+    let beacons = &content.1;
+    let min = content.2;
+    let max = content.3;
+    let mut cnt: BTreeMap<(i32, i32), i32> = BTreeMap::new();
+    let mut to_check: HashSet<(i32, i32)> = HashSet::new();
+    let check_range = 0..4000001;
+    let combinations = vec![(-1,-1), (1,1), (-1,1), (1,-1)];
+
+    for sensor in sensors {
+        let m_dist = (sensor.dist);
+        for d in 0..(m_dist+2) {
+            for combination in &combinations {
+                let y = (d*combination.1) + sensor.pos.1;
+                let x = (((m_dist+1)-d)*combination.0) + sensor.pos.0;
+                if check_range.contains(&x) && check_range.contains(&y) {
+                    to_check.insert((x, y));
+                }
+            }
+        }
+    }
+
+
+
+    let mut candidate = (0,0);
+    for check in to_check {
+        for (id, sensor) in sensors.iter().enumerate() {
+            if Sensor::dist(&sensor.pos, &check) <= sensor.dist {
+                //println!("id {} len {} nope {:?} dist {} {:?}", id, sensors.len(), &check, Sensor::dist(&sensor.pos, &check), sensor);
+                break;
+            } else {
+                if id == sensors.len()-1 {
+                    println!("candidate {:?} dist {}  sensor {:?}", check, Sensor::dist(&sensor.pos, &check), sensor);
+                    candidate = check;
+                }
+            }
+        }
+    }
+
+    println!("{:?}", candidate);
+}
+
 fn main() {
-    let content: (Vec<Sensor>, Vec<(i32, i32)>, i32, i32) = read_from_file();
-    first_part(&content);
+    let content: (Vec<Sensor>, HashSet<(i32, i32)>, i32, i32) = read_from_file();
+    //first_part(&content);
+
+    second_part(&content);
 
 }
